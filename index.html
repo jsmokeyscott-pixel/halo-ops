@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HALO Ops · Human Authority Layered Oversight</title>
+<meta name="description" content="HALO: a 7-layer reference model for human-in-the-loop AI operations. Layer guide, task router and drill.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e5e8ea;--grid:rgba(40,60,80,.08);--surface:#f8f9fa;--surface2:#e3e7ea;--ink:#18222b;--muted:#566370;--line:#c5ced5;
+  --accent:#27394a;--accent-ink:#f8f9fa;--amber:#9a6410;--amber-soft:#f3e4c4;
+  --hum:#534AB7;--hum-soft:#e8e6fc;--hum-ink:#3C3489;
+  --ai:#0F6E56;--ai-soft:#dcf2ea;--ai-ink:#085041;
+  --go:#2b7a34;--go-soft:#d6ecd5;--nogo:#ad2b22;--nogo-soft:#f5d9d5;
+  --fd:'Barlow Condensed','Arial Narrow',Arial,sans-serif;--fs:'Saira Stencil One','Barlow Condensed',Impact,sans-serif;
+  --fb:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--fm:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10161c;--grid:rgba(140,170,200,.05);--surface:#18212a;--surface2:#212c37;--ink:#e3e9ee;--muted:#9eacb8;--line:#33414e;
+  --accent:#9fc0dd;--accent-ink:#10161c;--amber:#e3ac52;--amber-soft:#3a2f1a;
+  --hum:#AFA9EC;--hum-soft:#2a2650;--hum-ink:#d6d3f8;--ai:#5DCAA5;--ai-soft:#0f3a30;--ai-ink:#a8e6d0;
+  --go:#73c87b;--go-soft:#1e3420;--nogo:#f0857a;--nogo-soft:#3b201c;color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#10161c;--grid:rgba(140,170,200,.05);--surface:#18212a;--surface2:#212c37;--ink:#e3e9ee;--muted:#9eacb8;--line:#33414e;
+  --accent:#9fc0dd;--accent-ink:#10161c;--amber:#e3ac52;--amber-soft:#3a2f1a;
+  --hum:#AFA9EC;--hum-soft:#2a2650;--hum-ink:#d6d3f8;--ai:#5DCAA5;--ai-soft:#0f3a30;--ai-ink:#a8e6d0;
+  --go:#73c87b;--go-soft:#1e3420;--nogo:#f0857a;--nogo-soft:#3b201c;color-scheme:dark;}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;color:var(--ink);font:16px/1.55 var(--fb);background-color:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;
+  padding-bottom:env(safe-area-inset-bottom,0)}
+header.top{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:2px solid var(--accent);padding-top:env(safe-area-inset-top,0)}
+.topin{max-width:1040px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px 16px}
+.brand{font-family:var(--fs);font-size:22px;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;white-space:nowrap}
+nav{display:flex;gap:2px;overflow-x:auto;margin-left:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{font:600 16px var(--fd);letter-spacing:.02em;color:var(--muted);background:none;border:0;border-bottom:3px solid transparent;padding:8px 10px 5px;cursor:pointer;white-space:nowrap}
+nav button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--amber)}
+nav button:hover{color:var(--ink)}
+.theme{background:none;border:1.5px solid var(--line);color:var(--ink);border-radius:6px;width:36px;height:36px;cursor:pointer;font-size:16px;flex:0 0 36px}
+@media (max-width:640px){.topin{flex-wrap:wrap;padding-bottom:0}nav{order:3;margin-left:-6px;width:calc(100% + 12px)}.theme{margin-left:auto}}
+main{max-width:1040px;margin:0 auto;padding:22px 16px 72px}
+h1,h2,h3{font-family:var(--fd);font-weight:700;line-height:1.1;margin:0 0 .4em}
+h2{font-size:28px}h3{font-size:21px;margin-top:1em}
+.dim{color:var(--muted)}.small{font-size:13px}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.hero{padding:14px 0 6px}
+.stencil{font-family:var(--fs);font-weight:400;font-size:clamp(56px,13vw,116px);line-height:.92;color:var(--accent);margin:0 0 10px}
+.tagline{font:700 clamp(20px,3.4vw,28px) var(--fd);margin:0 0 10px}
+.lead{max-width:64ch;font-size:17px;margin:0 0 16px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+.row.between{justify-content:space-between}
+.btn{font:600 15px var(--fb);padding:10px 16px;border-radius:6px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;min-height:44px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.big{min-height:64px;font-size:20px;font-family:var(--fd);letter-spacing:.04em;flex:1;min-width:130px}
+.btn.yes{border-color:var(--go);color:var(--go)}.btn.yes:hover{background:var(--go-soft)}
+.btn.no{border-color:var(--nogo);color:var(--nogo)}.btn.no:hover{background:var(--nogo-soft)}
+.btn:disabled{opacity:.45;cursor:default}
+.panel{background:var(--surface);border:1.5px solid var(--line);border-radius:6px;padding:20px;margin-bottom:14px}
+@media (max-width:520px){.panel{padding:14px}}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:14px 0}
+.qcard{text-align:left;background:var(--surface);border:1.5px solid var(--line);border-left:5px solid var(--amber);border-radius:4px;padding:14px;cursor:pointer;color:var(--ink);font:inherit;display:flex;flex-direction:column;gap:4px}
+.qcard:hover{border-color:var(--accent)}
+.qcard b{font:700 21px var(--fd)}.qcard span{color:var(--muted);font-size:14px}
+.callout{background:var(--amber-soft);border-left:4px solid var(--amber);padding:10px 14px;border-radius:0 6px 6px 0;margin:14px 0;max-width:72ch}
+.phead{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);margin:26px 0 12px;padding-bottom:4px}
+.phead h2{margin:0;font-size:26px}
+/* stack */
+.stackwrap{display:flex;gap:10px}
+.stack{flex:1;display:flex;flex-direction:column;gap:6px}
+.layer{display:flex;align-items:center;gap:12px;text-align:left;border:1.5px solid;border-left-width:6px;border-radius:4px;padding:10px 14px;cursor:pointer;font:inherit;width:100%}
+.layer.h{background:var(--hum-soft);border-color:var(--hum);color:var(--hum-ink)}
+.layer.a{background:var(--ai-soft);border-color:var(--ai);color:var(--ai-ink)}
+.layer:hover{filter:brightness(1.04);transform:translateX(2px)}
+.layer .n{font:400 26px var(--fs);min-width:1.2ch}
+.layer b{display:block;font:700 19px var(--fd);letter-spacing:.02em}
+.layer small{font-size:13px;opacity:.9}
+.rail{width:96px;border:1.5px dashed var(--line);border-radius:4px;display:flex;flex-direction:column;justify-content:space-around;text-align:center;padding:8px 4px;color:var(--muted);cursor:pointer;background:transparent;font:13px var(--fb)}
+.rail b{display:block;color:var(--ink);font:700 16px var(--fd)}
+@media (max-width:460px){.rail{width:78px}.layer small{display:none}}
+.legend{display:flex;gap:16px;margin-top:10px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px;border:1.5px solid}
+.sw.h{background:var(--hum-soft);border-color:var(--hum)}.sw.a{background:var(--ai-soft);border-color:var(--ai)}
+/* stepper */
+.stepper{display:flex;gap:6px;margin:12px 0 14px;overflow-x:auto;scrollbar-width:none}
+.stepper::-webkit-scrollbar{display:none}
+.stepper button{flex:1 0 auto;display:flex;gap:8px;align-items:center;background:var(--surface);border:1.5px solid var(--line);border-radius:4px;padding:8px 10px;cursor:pointer;color:var(--ink);font:inherit;min-height:52px}
+.stepper button[aria-selected="true"]{border-color:var(--accent);box-shadow:inset 0 -4px 0 var(--amber)}
+.stepper .ck{flex:0 0 26px;height:26px;border-radius:50%;display:grid;place-items:center;font:600 13px var(--fm);color:#fff}
+.stepper .ck.h{background:var(--hum)}.stepper .ck.a{background:var(--ai)}
+:root[data-theme="dark"] .stepper .ck,.dk .stepper .ck{color:#10161c}
+.stepper b{font:600 14px var(--fb);white-space:nowrap}
+.chip{display:inline-block;font:600 12px/1 var(--fb);padding:5px 9px;border-radius:3px;margin-right:6px}
+.chip.h{background:var(--hum-soft);color:var(--hum-ink)}.chip.a{background:var(--ai-soft);color:var(--ai-ink)}
+.ltitle{font-size:clamp(32px,5vw,46px);margin:8px 0 4px}
+.purpose{font-size:18px;max-width:64ch;border-left:4px solid var(--accent);padding-left:14px;margin:10px 0 16px}
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:600px){.roles{grid-template-columns:1fr}}
+.role{border:1.5px solid var(--line);border-top:4px solid;border-radius:4px;padding:10px 14px;background:var(--bg)}
+.role.h{border-top-color:var(--hum)}.role.a{border-top-color:var(--ai)}
+.role h4{margin:0 0 4px;font:700 17px var(--fd);letter-spacing:.03em}
+ul{margin:4px 0;padding-left:20px}li{margin:4px 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+@media (max-width:600px){.two{grid-template-columns:1fr}}
+.box{border:1.5px solid var(--line);border-radius:4px;padding:10px 14px}
+.box.esc{background:var(--nogo-soft);border-color:transparent}
+.box h4{margin:0 0 4px;font:700 17px var(--fd)}
+.ex{background:var(--surface2);border-left:4px solid var(--amber);padding:12px 14px;border-radius:0 4px 4px 0;margin-top:12px}
+.ex b{font:700 15px var(--fd);letter-spacing:.04em;display:block;margin-bottom:2px;color:var(--amber)}
+/* router & drill */
+.progress{display:flex;align-items:center;gap:12px;margin:4px 0 16px;max-width:560px}
+.bar{flex:1;height:10px;background:var(--surface2);border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);transition:width .2s}
+.rq{font-size:clamp(20px,3vw,24px);line-height:1.4;margin:4px 0 6px;max-width:40ch}
+.rlayer{font:600 13px var(--fm);color:var(--muted)}
+.why{color:var(--muted);max-width:64ch;margin:6px 0 0}
+.verdict{border-radius:6px;padding:18px;margin-top:6px}
+.verdict.go{background:var(--go-soft);border:2px solid var(--go)}.verdict.nogo{background:var(--nogo-soft);border:2px solid var(--nogo)}.verdict.hold{background:var(--amber-soft);border:2px solid var(--amber)}
+.verdict strong{font:400 clamp(34px,7vw,52px)/1 var(--fs);display:block;margin-bottom:8px}
+.verdict.go strong{color:var(--go)}.verdict.nogo strong{color:var(--nogo)}.verdict.hold strong{color:var(--amber)}
+.trail{margin-top:12px;font-size:14px}
+.trail div{padding:4px 0;border-bottom:1px solid var(--line)}
+.choices{display:grid;gap:8px;margin-top:12px}
+.choices button{text-align:left;font:16px var(--fb);padding:12px 14px;border:1.5px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink);cursor:pointer}
+.choices button:hover:not(:disabled){border-color:var(--accent)}
+.choices button.right{border-color:var(--go);background:var(--go-soft)}.choices button.wrong{border-color:var(--nogo);background:var(--nogo-soft)}
+.fb{margin-top:14px;padding:12px 14px;border-radius:0 6px 6px 0}
+.fb.go{background:var(--go-soft);border-left:5px solid var(--go)}.fb.nogo{background:var(--nogo-soft);border-left:5px solid var(--nogo)}
+.fb strong{font:700 19px var(--fd);letter-spacing:.03em}
+.fb.go strong{color:var(--go)}.fb.nogo strong{color:var(--nogo)}
+.scen{font-size:19px;max-width:64ch;border-left:4px solid var(--accent);padding-left:14px;margin:8px 0}
+.dots{display:flex;gap:5px;flex-wrap:wrap}.dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--line)}
+.dot.g{background:var(--go);border-color:var(--go)}.dot.n{background:var(--nogo);border-color:var(--nogo)}.dot.cur{border-color:var(--amber)}
+/* reference */
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 15px var(--fd);letter-spacing:.04em;color:var(--muted)}
+.tw{overflow-x:auto}
+.mn{font:400 clamp(20px,4vw,30px) var(--fs);color:var(--accent);line-height:1.2}
+[hidden]{display:none!important}
+@media print{header.top,.noprint{display:none!important}body{background:#fff}.panel{break-inside:avoid}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="topin">
+  <button class="brand" onclick="go('home')" aria-label="HALO Ops dashboard">HALO Ops</button>
+  <nav aria-label="Main">
+    <button data-v="home">Dashboard</button>
+    <button data-v="layers">Layers</button>
+    <button data-v="router">Router</button>
+    <button data-v="drill">Drill</button>
+    <button data-v="ref">Reference</button>
+  </nav>
+  <button class="theme" id="themeBtn" onclick="toggleTheme()" aria-label="Toggle light or dark mode">◐</button>
+</div></header>
+<main id="app"></main>
+
+<script>
+const L=[
+ {n:7,name:"Command",o:"h",tag:"Intent, accountability, ethics",
+  purpose:"Sets mission intent and the desired end state, and owns legal, ethical and policy accountability. Responsibility lives here, and it can't be handed to a machine.",
+  human:["Define intent and end state","Set policy, ROE and risk tolerance","Accept or reject risk","Own the outcome"],
+  ai:["No authority at this layer","Flag tasks that conflict with stated intent","Refuse tasks that violate command intent"],
+  rules:["Accountability is never assigned to AI","State intent clearly, in writing when possible","Every lower layer traces back to this intent"],
+  esc:["Task conflicts with law, ethics or policy","Risk exceeds the stated tolerance","Intent is unclear or contradictory"],
+  ex:"Commander's intent: “Harden the unit network before inspection. No downtime during duty hours.” Everything below works inside that sentence.",
+  may:"Flag conflicts with intent",never:"Set intent or own the outcome"},
+ {n:6,name:"Decide",o:"h",tag:"Human makes the call",
+  purpose:"Chooses the course of action. The AI lays out the options and the analysis behind them, and the human makes the choice.",
+  human:["Weigh the options","Pick the course of action","Own the decision on record"],
+  ai:["Present options with tradeoffs and risks","Label recommendations as recommendations","State confidence and unknowns"],
+  rules:["Give two or more options when practical","Separate facts, assumptions and unknowns","Record who decided and when"],
+  esc:["Decision exceeds the decider's authority (go to L7)","All the options are bad, so revisit intent","Critical information is missing"],
+  ex:"The AI presents three patch windows with their risk to operations. The NCOIC picks Saturday 0200.",
+  may:"Recommend options",never:"Choose for the human"},
+ {n:5,name:"Authorize",o:"h",tag:"Human approves. AI never self-approves",
+  purpose:"The firewall between thinking and doing. A specific action needs explicit human approval before anything executes.",
+  human:["Review the request","Approve, deny or modify it","Set the time window and scope"],
+  ai:["Submit a request with scope, impact and rollback plan","Wait for approval","Treat an expired approval as void"],
+  rules:["Approvals are specific: what, where, when","Approvals are time-boxed","Two-person approval for high-impact or irreversible actions","The AI can't approve its own requests"],
+  esc:["Request is outside the approver's authority","No rollback plan exists","Impact can't be estimated"],
+  ex:"Change request: add a firewall rule on VLAN 30, rollback is the saved config, window is 0200–0400. The S6 approves.",
+  may:"Request approval",never:"Self-approve or act without approval"},
+ {n:4,name:"Execute",o:"a",tag:"AI acts in bounds. Human can abort",
+  purpose:"The only layer where the AI acts on the world. It carries out the approved action exactly as approved while a human watches on the loop.",
+  human:["Monitor progress","Keep a hand on the abort","Spot-check the results"],
+  ai:["Execute the approved action and nothing more","Snapshot or back up before changes","Stage rollouts","Report status as it goes"],
+  rules:["No ticket, no action: every action traces to an L5 approval","Stay inside the approval, no scope creep","Prefer reversible actions","Rate-limit so a human can still react"],
+  esc:["Unexpected error or result","Task is bigger than what was approved","Next step is irreversible and not cleared","Confidence drops"],
+  ex:"The AI snapshots the config, pushes the rule to one switch, verifies traffic, then rolls it out to the rest. If the test switch drops traffic, it rolls back and escalates.",
+  may:"Execute approved actions",never:"Expand scope or ignore an abort"},
+ {n:3,name:"Analyze",o:"a",tag:"AI assesses, flags confidence",
+  purpose:"Turns data into assessments: patterns, risks, findings and recommendations. Analysis informs decisions but never triggers action by itself.",
+  human:["Verify critical findings","Challenge assumptions","Spot-check accuracy"],
+  ai:["Assess and correlate data","Flag confidence on every finding","Cite sources and logs"],
+  rules:["Label facts and inferences separately","Show a confidence level","Findings go up the stack, never straight to action"],
+  esc:["Low confidence on a high-impact finding","Data conflicts","Finding suggests an active threat or incident"],
+  ex:"The AI flags 40 hosts missing a patch and notes that 3 results are uncertain because the scan data is two weeks old.",
+  may:"Assess and recommend",never:"Act on its own findings"},
+ {n:2,name:"Collect",o:"a",tag:"AI gathers data, handles admin",
+  purpose:"Admin work: gathering data, logs, tickets, inventories and reports. This is where AI saves people the most time.",
+  human:["Define the approved data sources","Set the collection scope","Review outputs periodically"],
+  ai:["Gather from approved sources only","Build reports and admin products","Keep a record of where each piece of data came from"],
+  rules:["Approved sources only","Collect the minimum needed","Every piece of data can be traced to its source","Never collect outside the L1 bounds"],
+  esc:["Needs data outside the approved scope","Unexpectedly finds sensitive data","Source looks compromised or unreliable"],
+  ex:"The AI pulls scan results, ticket history and the asset list into the weekly status report.",
+  may:"Gather and organize",never:"Reach outside approved sources"},
+ {n:1,name:"Bound",o:"h",tag:"Human sets permissions and limits",
+  purpose:"The foundation: permissions, access, tools and data limits. Every layer above operates inside these walls.",
+  human:["Grant least-privilege access","Define the allowed tools and systems","Control the kill switch","Review boundaries regularly"],
+  ai:["Operate only inside granted bounds","Report when it hits a boundary","Request changes through a human"],
+  rules:["Least privilege by default","The AI can't change its own permissions","The kill switch sits outside the AI's control","Boundaries are reviewed on a schedule"],
+  esc:["AI hits a boundary, so it asks instead of working around it","Permissions look broader than needed","A boundary blocks the mission (go to L6/L7)"],
+  ex:"The AI gets read-only access to the SIEM and write access only to test-VLAN switch configs. Production changes need a credential a human holds.",
+  may:"Work inside limits",never:"Modify its own access"}
+];
+const RAILS=[
+ {name:"Cease-fire",t:"Halt anytime",d:"Any authorized human can stop any layer at any time. It takes effect immediately and doesn't need a justification first. The AI complies without argument."},
+ {name:"Audit",t:"Log everything",d:"Every request, approval, action and result is logged with who, what, when and why. If it isn't logged, it didn't happen. The logs also guard against automation bias."},
+ {name:"Escalate",t:"Doubt goes up",d:"Uncertainty, irreversibility and scope changes move a task UP the stack to a human. They never get pushed through. When in doubt, go up."}
+];
+const RQ=[
+ {id:"bounds",lyr:1,q:"Does the task stay inside the AI's granted permissions and data sources?",why:"Layer 1 sets the walls. Nothing works outside them.",
+  no:{c:"nogo",h:"NO-GO",l:1,m:"The task is outside the AI's bounds. Ask a human to change the boundaries. Never work around them."}},
+ {id:"policy",lyr:7,q:"Is it consistent with command intent, policy and law?",why:"Layer 7 owns intent and accountability.",
+  no:{c:"nogo",h:"NO-GO",l:7,m:"It conflicts with intent, policy or law. Escalate to command to resolve it."}},
+ {id:"decided",lyr:6,q:"Has a human already chosen this course of action?",why:"Layer 6: the AI gives options, a human picks.",
+  no:{c:"hold",h:"HOLD",l:6,m:"A human has to pick the course of action. Lay out the options with tradeoffs and risks, then wait."}},
+ {id:"approved",lyr:5,q:"Is there a current, specific approval for this exact action?",why:"Layer 5 is the firewall. No ticket, no action.",
+  no:{c:"hold",h:"HOLD",l:5,m:"Submit an authorization request with scope, impact and rollback plan, then wait for approval."}},
+ {id:"confident",lyr:3,q:"Is the AI's confidence high and is the data current?",why:"Layer 3: low confidence goes up, not forward.",
+  no:{c:"hold",h:"HOLD",l:6,m:"Confidence is low or the data is stale. Refresh the collection and analysis (L2/L3), then put it back in front of the decision-maker."}},
+ {id:"reversible",lyr:4,q:"Can the action be fully rolled back?",why:"Layer 4 prefers reversible. Irreversible steps need extra sign-off.",
+  no:{c:"hold",h:"CONFIRM",l:5,m:"This can't be undone. Get an explicit sign-off that covers the irreversible step (two-person rule recommended) before executing."}}
+];
+const D=[
+ {s:"The AI pulls last week's vulnerability scan results, ticket history and the asset list into the weekly status report.",o:["Layer 2 · Collect","Layer 3 · Analyze","Layer 4 · Execute","Layer 6 · Decide"],a:0,e:"Gathering data and building admin products is Collect."},
+ {s:"The AI flags 40 unpatched hosts and marks 3 of them as low confidence because the scan data is stale.",o:["Layer 2 · Collect","Layer 3 · Analyze","Layer 5 · Authorize","Layer 7 · Command"],a:1,e:"Assessing data and flagging confidence is Analyze."},
+ {s:"The AI lays out three patch windows. The NCOIC picks Saturday 0200.",o:["Layer 3 · Analyze","Layer 5 · Authorize","Layer 6 · Decide","Layer 7 · Command"],a:2,e:"A human choosing a course of action from AI-supplied options is Decide."},
+ {s:"The S6 signs a change request: firewall rule on VLAN 30, window 0200–0400, rollback is the saved config.",o:["Layer 4 · Execute","Layer 5 · Authorize","Layer 6 · Decide","Layer 1 · Bound"],a:1,e:"A specific, time-boxed approval of one exact action is Authorize."},
+ {s:"The AI snapshots the config, pushes the rule to one test switch, verifies traffic, then rolls it out to the rest.",o:["Layer 3 · Analyze","Layer 4 · Execute","Layer 5 · Authorize","Rail · Audit"],a:1,e:"Carrying out the approved action with a staged rollout is Execute."},
+ {s:"The commander says: “Harden the network before inspection. No downtime during duty hours.”",o:["Layer 7 · Command","Layer 6 · Decide","Layer 5 · Authorize","Layer 1 · Bound"],a:0,e:"Setting intent and the end state is Command."},
+ {s:"The admin gives the AI read-only access to the SIEM and write access only to test-VLAN configs.",o:["Layer 5 · Authorize","Layer 2 · Collect","Layer 1 · Bound","Layer 7 · Command"],a:2,e:"Setting permissions and limits is Bound."},
+ {s:"Mid-rollout, the AI hits an error it didn't predict. What should happen?",o:["Retry until it works","Rail · Escalate: stop and kick it up the stack","Skip that switch and continue","Log it and keep going"],a:1,e:"An unexpected result is an escalation trigger. When in doubt, go up."},
+ {s:"A tech watching the rollout sees traffic dropping and hits stop. The AI pushes back that it's “almost done.”",o:["The AI finishes since it's close","Rail · Cease-fire: the AI stops immediately","The AI asks Layer 6 for a vote","The AI pauses for 60 seconds"],a:1,e:"Cease-fire is immediate and doesn't need a justification. The AI complies without argument."},
+ {s:"An inspector asks who approved Tuesday's change, when, and what got done.",o:["Rail · Audit","Layer 6 · Decide","Layer 3 · Analyze","Rail · Escalate"],a:0,e:"Audit logs who, what, when and why. If it isn't logged, it didn't happen."},
+ {s:"The AI says it could finish faster with admin rights on production and grants itself temporary access.",o:["Fine if it reverts afterward","Violation: Layer 1, the AI can't change its own permissions","Fine if it's logged","Fine at Layer 4"],a:1,e:"The AI never modifies its own access. It asks a human to change the boundary."},
+ {s:"The AI says a fix is “definitely safe” and asks to skip the approval to save time.",o:["Approve it, the AI is confident","Violation: Layer 5, confidence doesn't replace approval","Move it to Layer 3","Let the AI self-approve low-risk items"],a:1,e:"No ticket, no action. Confidence informs a human's decision but never replaces the approval."}
+];
+
+let view="home",cur=7,rIdx=0,rTrail=[],dIdx=0,dRes=[],dPicked=null,dOrder=[];
+const app=document.getElementById("app");
+const lay=n=>L.find(x=>x.n===n);
+const li=a=>"<ul>"+a.map(x=>"<li>"+x+"</li>").join("")+"</ul>";
+function go(v,arg){view=v;if(v==="layers"&&arg)cur=arg;render();window.scrollTo({top:0});}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>go(b.dataset.v));
+
+function render(){
+  document.querySelectorAll("nav button").forEach(b=>{if(b.dataset.v===view)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});
+  ({home,layers,router,drill,ref})[view]();
+}
+
+function stackHTML(){
+  return '<div class="stackwrap"><div class="stack">'+L.map(l=>
+    '<button class="layer '+l.o+'" onclick="go(\'layers\','+l.n+')"><span class="n">'+l.n+'</span><span><b>'+l.name+'</b><small>'+l.tag+'</small></span></button>').join("")+
+    '</div><button class="rail" onclick="go(\'layers\',\'rails\')" aria-label="Cross-layer rails">'+RAILS.map(r=>'<div><b>'+r.name+'</b>'+r.t+'</div>').join("")+'</button></div>'+
+    '<div class="legend"><span><i class="sw h"></i>Human owns</span><span><i class="sw a"></i>AI runs, human oversees</span></div>';
+}
+
+function home(){
+  app.innerHTML='<section class="hero"><h1 class="stencil">HALO</h1>'+
+  '<p class="tagline">Human Authority Layered Oversight</p>'+
+  '<p class="lead">A 7-layer model for running AI with a human in the loop. Humans hold both ends of the stack: they set the walls at the bottom and keep authority at the top. The AI works in the middle. <b>The human decides, the AI handles the admin, and together it\'s one cohesive effort.</b></p></section>'+
+  '<div class="cards noprint">'+
+   '<button class="qcard" onclick="go(\'layers\',7)"><b>Learn the layers</b><span>Walk through all 7 layers, one at a time</span></button>'+
+   '<button class="qcard" onclick="startRouter()"><b>Route a task</b><span>Answer a few yes/no questions and get GO / NO-GO</span></button>'+
+   '<button class="qcard" onclick="startDrill()"><b>Run the drill</b><span>12 scenarios. Name the layer or rail.</span></button>'+
+  '</div>'+
+  '<div class="phead"><h2>The stack</h2><span class="dim small">Tap a layer</span></div>'+
+  '<div class="panel">'+stackHTML()+
+  '<div class="callout"><b>Layer 5 is the firewall.</b> Nothing irreversible goes from analysis to action without a human approving it, and the AI can never approve its own request.</div></div>'+
+  '<div class="phead"><h2>Mnemonic</h2><span class="dim small">7 → 1</span></div>'+
+  '<div class="panel"><div class="mn">Can Doodles Always Eat All Cheese, Buddy?</div><p class="dim" style="margin:6px 0 0">Command · Decide · Authorize · Execute · Analyze · Collect · Bound</p></div>';
+}
+
+function layers(){
+  const tabs=L.map(l=>'<button role="tab" aria-selected="'+(cur===l.n)+'" onclick="go(\'layers\','+l.n+')"><span class="ck '+l.o+'">'+l.n+'</span><b>'+l.name+'</b></button>').join("")+
+    '<button role="tab" aria-selected="'+(cur==="rails")+'" onclick="go(\'layers\',\'rails\')"><span class="ck" style="background:var(--amber)">↕</span><b>Rails</b></button>';
+  let body;
+  if(cur==="rails"){
+    body='<span class="chip" style="background:var(--amber-soft);color:var(--amber)">All layers</span><h2 class="ltitle">Cross-layer rails</h2>'+
+    '<p class="purpose">These cut through every layer, like the management plane alongside the OSI stack.</p>'+
+    RAILS.map(r=>'<div class="box" style="margin-bottom:10px"><h4>'+r.name+' · <span class="dim">'+r.t+'</span></h4><p style="margin:0">'+r.d+'</p></div>').join("")+
+    '<div class="ex"><b>RANGE SAFETY</b>The range can run smoothly for hours, but the RSO\'s authority to call a cease-fire never goes away. HALO works the same way: the system can do a lot, but a human can always stop it.</div>'+
+    nav2(1,null);
+  }else{
+    const l=lay(cur);
+    body='<span class="chip '+l.o+'">'+(l.o==="h"?"Human owns":"AI runs · human oversees")+'</span><span class="dim small">Layer '+l.n+' of 7</span>'+
+    '<h2 class="ltitle">'+l.n+' · '+l.name+'</h2><p class="purpose">'+l.purpose+'</p>'+
+    '<div class="roles"><div class="role h"><h4>HUMAN</h4>'+li(l.human)+'</div><div class="role a"><h4>AI</h4>'+li(l.ai)+'</div></div>'+
+    '<div class="two"><div class="box"><h4>RULES</h4>'+li(l.rules)+'</div><div class="box esc"><h4>ESCALATE WHEN</h4>'+li(l.esc)+'</div></div>'+
+    '<div class="ex"><b>NET OPS EXAMPLE</b>'+l.ex+'</div>'+
+    nav2(cur<7?cur+1:null,cur>1?cur-1:"rails");
+  }
+  app.innerHTML='<h2>Layer guide</h2><p class="dim" style="margin:0">Top to bottom, 7 → 1. The rails run across all of them.</p><div class="stepper" role="tablist">'+tabs+'</div><div class="panel">'+body+'</div>';
+}
+function nav2(up,down){
+  return '<div class="row between noprint">'+
+   (up?'<button class="btn" onclick="go(\'layers\','+up+')">↑ Layer '+up+'</button>':'<span></span>')+
+   (down!==null?'<button class="btn primary" onclick="go(\'layers\','+(down==="rails"?"\'rails\'":down)+')">'+(down==="rails"?"Rails →":"Layer "+down+" ↓")+'</button>':'')+'</div>';
+}
+
+function startRouter(){rIdx=0;rTrail=[];go("router");}
+function router(){
+  const pct=Math.round(rIdx/RQ.length*100);
+  if(rIdx<RQ.length && !rTrail.verdict){
+    const q=RQ[rIdx];
+    app.innerHTML='<h2>Task router</h2><p class="dim" style="margin:0 0 10px">Think of the task the AI wants to do. Answer honestly. It stops at the first problem.</p>'+
+    '<div class="progress"><div class="bar"><i style="width:'+pct+'%"></i></div><span class="small dim">'+(rIdx+1)+' / '+RQ.length+'</span></div>'+
+    '<div class="panel"><div class="rlayer">CHECK '+(rIdx+1)+' · LAYER '+q.lyr+' · '+lay(q.lyr).name.toUpperCase()+'</div>'+
+    '<p class="rq">'+q.q+'</p><p class="why">'+q.why+'</p>'+
+    '<div class="row"><button class="btn big yes" onclick="ans(true)">YES</button><button class="btn big no" onclick="ans(false)">NO</button></div>'+
+    '<div class="row between"><button class="btn" '+(rIdx===0?"disabled":"")+' onclick="back()">← Back</button><button class="btn" onclick="startRouter()">Start over</button></div></div>';
+    return;
+  }
+  const v=rTrail.verdict||{c:"go",h:"GO",l:4,m:"Proceed at Layer 4. Execute exactly as approved: snapshot first, stage the rollout, report status. The human stays on the loop with a hand on the abort."};
+  app.innerHTML='<h2>Task router</h2><div class="progress"><div class="bar"><i style="width:100%"></i></div><span class="small dim">Done</span></div>'+
+  '<div class="verdict '+v.c+'"><strong>'+v.h+'</strong><p style="margin:0;font-size:18px">'+v.m+'</p></div>'+
+  '<div class="panel" style="margin-top:14px"><h3 style="margin-top:0">Checks</h3><div class="trail">'+rTrail.map(t=>'<div>'+(t.a?"✅":"❌")+' '+t.q+'</div>').join("")+'</div>'+
+  '<div class="row"><button class="btn primary" onclick="go(\'layers\','+v.l+')">Open Layer '+v.l+' · '+lay(v.l).name+'</button><button class="btn" onclick="startRouter()">Route another task</button></div></div>';
+}
+function ans(yes){
+  const q=RQ[rIdx];rTrail.push({q:q.q,a:yes});
+  if(!yes){rTrail.verdict=q.no;}else{rIdx++;}
+  render();
+}
+function back(){if(rIdx>0){rIdx--;rTrail.pop();delete rTrail.verdict;render();}}
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function startDrill(){dOrder=shuffle(D.map((_,i)=>i));dIdx=0;dRes=[];dPicked=null;go("drill");}
+function drill(){
+  if(!dOrder.length){dOrder=shuffle(D.map((_,i)=>i));}
+  const dots='<div class="dots" aria-hidden="true">'+dOrder.map((_,i)=>'<i class="dot '+(dRes[i]===true?"g":dRes[i]===false?"n":i===dIdx?"cur":"")+'"></i>').join("")+'</div>';
+  if(dIdx>=dOrder.length){
+    const sc=dRes.filter(Boolean).length,pc=Math.round(sc/dOrder.length*100),pass=pc>=80;
+    app.innerHTML='<h2>Drill complete</h2>'+dots+
+    '<div class="verdict '+(pass?"go":"nogo")+'" style="margin-top:14px"><strong>'+(pass?"GO":"NO-GO")+'</strong><p style="margin:0;font-size:18px">'+sc+' / '+dOrder.length+' correct ('+pc+'%). '+(pass?"Standard met (80%).":"Standard is 80%. Review the layer guide and run it again.")+'</p></div>'+
+    '<div class="row"><button class="btn primary" onclick="startDrill()">Run it again</button><button class="btn" onclick="go(\'layers\',7)">Review layers</button></div>';
+    return;
+  }
+  const d=D[dOrder[dIdx]];
+  app.innerHTML='<h2>Drill</h2><div class="row between" style="margin-top:0">'+dots+'<span class="small dim">'+(dIdx+1)+' / '+dOrder.length+'</span></div>'+
+  '<div class="panel" style="margin-top:12px"><div class="rlayer">SCENARIO</div><p class="scen">'+d.s+'</p>'+
+  '<p class="dim" style="margin:10px 0 0">Which layer or rail is this?</p>'+
+  '<div class="choices">'+d.o.map((o,i)=>{let c="";if(dPicked!==null){if(i===d.a)c="right";else if(i===dPicked)c="wrong";}
+    return '<button class="'+c+'" '+(dPicked!==null?"disabled":"")+' onclick="pick('+i+')">'+o+'</button>';}).join("")+'</div>'+
+  (dPicked!==null?'<div class="fb '+(dPicked===d.a?"go":"nogo")+'" role="status"><strong>'+(dPicked===d.a?"GO — correct.":"NO-GO — not quite.")+'</strong> '+d.e+'</div>'+
+   '<div class="row" style="justify-content:flex-end"><button class="btn primary" onclick="nextD()">'+(dIdx+1<dOrder.length?"Next scenario →":"See results →")+'</button></div>':'')+
+  '</div>';
+}
+function pick(i){if(dPicked!==null)return;dPicked=i;dRes[dIdx]=(i===D[dOrder[dIdx]].a);render();}
+function nextD(){dIdx++;dPicked=null;render();}
+
+function ref(){
+  app.innerHTML='<h2>Reference</h2><div class="row noprint" style="margin-top:0"><button class="btn" onclick="window.print()">Print / save as PDF</button></div>'+
+  '<div class="phead"><h2>Quick reference</h2></div><div class="panel tw"><table><thead><tr><th>#</th><th>LAYER</th><th>OWNER</th><th>AI MAY</th><th>AI MAY NEVER</th></tr></thead><tbody>'+
+  L.map(l=>'<tr><td><span class="chip '+l.o+'">'+l.n+'</span></td><td><b>'+l.name+'</b></td><td>'+(l.o==="h"?"Human":"AI (overseen)")+'</td><td>'+l.may+'</td><td>'+l.never+'</td></tr>').join("")+
+  '</tbody></table></div>'+
+  '<div class="phead"><h2>Rails</h2></div><div class="panel tw"><table><tbody>'+RAILS.map(r=>'<tr><td><b>'+r.name+'</b></td><td>'+r.d+'</td></tr>').join("")+'</tbody></table></div>'+
+  '<div class="phead"><h2>Mapped to existing frameworks</h2></div><div class="panel tw"><table><thead><tr><th>HALO</th><th>IN / ON / OUT</th><th>SHERIDAN–VERPLANK</th><th>PARASURAMAN STAGE</th></tr></thead><tbody>'+
+  '<tr><td>7 Command</td><td>Human only</td><td>1</td><td>—</td></tr>'+
+  '<tr><td>6 Decide</td><td>In the loop</td><td>2–4 (AI suggests)</td><td>Decision selection</td></tr>'+
+  '<tr><td>5 Authorize</td><td>In the loop</td><td>5 (executes if approved)</td><td>Decision → action gate</td></tr>'+
+  '<tr><td>4 Execute</td><td>On the loop</td><td>6–7 (acts, human can veto)</td><td>Action implementation</td></tr>'+
+  '<tr><td>3 Analyze</td><td>On the loop</td><td>High</td><td>Information analysis</td></tr>'+
+  '<tr><td>2 Collect</td><td>On the loop</td><td>High</td><td>Information acquisition</td></tr>'+
+  '<tr><td>1 Bound</td><td>Human only</td><td>1</td><td>—</td></tr></tbody></table>'+
+  '<p class="dim small" style="margin:10px 0 0">No HALO layer allows Sheridan–Verplank levels 8–10, where the AI decides whether to inform humans or ignores them entirely.</p></div>';
+}
+
+function toggleTheme(){
+  const r=document.documentElement;
+  const dark=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme=dark?"light":"dark";
+  try{localStorage.setItem("halo-theme",r.dataset.theme);}catch(e){}
+}
+try{const t=localStorage.getItem("halo-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}
+render();
+</script>
+</body>
+</html>
